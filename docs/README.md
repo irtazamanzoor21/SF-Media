@@ -1,6 +1,6 @@
-# Spring Post — Documentation
+# SF Media — Documentation
 
-**Spring Post** is an AI-powered social media campaign platform. Marketers and agencies define their brand voice once, then generate platform-optimized posts (LinkedIn, X, Instagram, Facebook), schedule them, publish them to live accounts, and track engagement — all from a single workspace.
+**SF Media** is an AI-powered social media campaign platform. Marketers and agencies define their brand voice once, then generate platform-optimized posts (LinkedIn, X, Instagram, Facebook), schedule them, publish them to live accounts, and track engagement — all from a single workspace.
 
 This is the canonical documentation for the project. Use the index below to jump to what you need.
 
@@ -23,7 +23,7 @@ This is the canonical documentation for the project. Use the index below to jump
 
 ### Business
 
-- **[BUSINESS.md](./BUSINESS.md)** — What Spring Post does, who it's for, value proposition, supported platforms, pricing tiers, and quotas. Also covers compliance (Meta App Review, privacy, ToS).
+- **[BUSINESS.md](./BUSINESS.md)** — What SF Media does, who it's for, value proposition, supported platforms, pricing tiers, and quotas. Also covers compliance (Meta App Review, privacy, ToS).
 
 ### Engineering
 
@@ -59,7 +59,7 @@ This is the canonical documentation for the project. Use the index below to jump
 ## Repository layout
 
 ```
-spring-post/
+SF-Media/
 ├── client/           # React SPA (Vite)
 │   └── src/
 │       ├── pages/         # Route components

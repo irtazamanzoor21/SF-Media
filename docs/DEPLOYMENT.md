@@ -1,6 +1,6 @@
 # Deployment
 
-How Spring Post ships to production and what to know about operating it.
+How SF Media ships to production and what to know about operating it.
 
 ---
 
@@ -8,11 +8,11 @@ How Spring Post ships to production and what to know about operating it.
 
 | Where | What |
 |-------|------|
-| **Source repository** | `github.com/Building-Agents/spring-post`, branch `development` |
+| **Source repository** | `github.com/irtazamanzoor21/SF-Media`, branch `development` |
 | **CI/CD** | GitHub Actions → [.github/workflows/development_social-app.yml](../.github/workflows/development_social-app.yml) |
 | **Build** | Azure App Service Oryx auto-build (`npm install` → `npm run build`) |
 | **Runtime** | Azure App Service "Social-app", slot "Production" (Linux container, Node 22) |
-| **Public URL** | https://springpost.buildingagents.ai |
+| **Public URL** | https://sfmedia.com |
 | **Database** | PostgreSQL 16 (managed by team's provider) |
 
 There is **no staging slot**. A push to `development` deploys directly to Production. Treat the push as the go-live action.
@@ -46,7 +46,7 @@ All env vars live in **Azure App Service → Configuration → Application Setti
 |----------|---------|-------|
 | `DATABASE_URL` | PostgreSQL connection string | Standard `postgres://user:pass@host:port/db?sslmode=require` |
 | `SESSION_SECRET` | Session cookie signing key | Random 32+ char string; do **not** rotate without expecting a forced re-login of all users |
-| `APP_BASE_URL` | Public app URL | Required for OAuth redirects, email links, and Companion (e.g. `https://springpost.buildingagents.ai`) — **without this, FB/IG OAuth and Companion uploads break** |
+| `APP_BASE_URL` | Public app URL | Required for OAuth redirects, email links, and Companion (e.g. `https://sfmedia.com`) — **without this, FB/IG OAuth and Companion uploads break** |
 
 ### Optional but recommended
 
@@ -75,7 +75,7 @@ All env vars live in **Azure App Service → Configuration → Application Setti
 | Variable | Purpose |
 |----------|---------|
 | `SENDGRID_API_KEY` | SendGrid API key for SMTP relay |
-| `SENDGRID_FROM_EMAIL` | From address (defaults to `hello@springpost.co`) |
+| `SENDGRID_FROM_EMAIL` | From address (defaults to `hello@sfmedia.com`) |
 
 ### Image storage (Cloudinary)
 
@@ -93,7 +93,7 @@ All env vars live in **Azure App Service → Configuration → Application Setti
 | `STRIPE_PUBLISHABLE_KEY` | Public key for client-side embedding (if used) |
 | `STRIPE_WEBHOOK_SECRET` | Endpoint signing secret — **mandatory**, otherwise webhook signature verification fails and subscription state won't update |
 
-> **Webhook configuration**: in the Stripe Dashboard, point the webhook at `https://springpost.buildingagents.ai/api/webhook/stripe` and subscribe to: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`, `charge.refunded`. Copy the signing secret into `STRIPE_WEBHOOK_SECRET`.
+> **Webhook configuration**: in the Stripe Dashboard, point the webhook at `https://sfmedia.com/api/webhook/stripe` and subscribe to: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`, `charge.refunded`. Copy the signing secret into `STRIPE_WEBHOOK_SECRET`.
 
 ### Companion (file uploads from Google Drive / OneDrive / Unsplash)
 
@@ -104,7 +104,7 @@ All env vars live in **Azure App Service → Configuration → Application Setti
 | `COMPANION_ONEDRIVE_KEY` / `COMPANION_ONEDRIVE_SECRET` | Microsoft Azure AD app credentials (for OneDrive) |
 | `COMPANION_UNSPLASH_KEY` | Unsplash API key |
 
-> **Operational gotcha**: Spring Post sets `app.set("trust proxy", 1)` so that `req.hostname` reads `X-Forwarded-Host` (Azure's external hostname), not the internal probe hostname. Without this, OAuth redirect URLs would be wrong and Companion 401s would happen on every cloud-import. This is already configured.
+> **Operational gotcha**: SF Media sets `app.set("trust proxy", 1)` so that `req.hostname` reads `X-Forwarded-Host` (Azure's external hostname), not the internal probe hostname. Without this, OAuth redirect URLs would be wrong and Companion 401s would happen on every cloud-import. This is already configured.
 
 ### Social platforms
 
@@ -159,7 +159,7 @@ Behavior:
 - **Azure Portal → App Service "Social-app" → Log stream** — live tail. Useful for verifying boot.
 - **Azure Portal → Diagnose and solve problems** — Application Logs / Failures / Restarts.
 - **Application Insights** (if wired up) — request latency, exception traces.
-- **GitHub Actions runs** — https://github.com/Building-Agents/spring-post/actions for deploy success/failure.
+- **GitHub Actions runs** — https://github.com/irtazamanzoor21/SF-Media/actions for deploy success/failure.
 
 ### Markers to grep on every deploy
 

@@ -1,6 +1,6 @@
 # Importing Historical Brand Data
 
-If you've spent months or years developing your brand voice in ChatGPT (or another AI tool), you can import that history into Spring Post so the posts we generate reflect your real brand voice — not a generic profile.
+If you've spent months or years developing your brand voice in ChatGPT (or another AI tool), you can import that history into SF Media so the posts we generate reflect your real brand voice — not a generic profile.
 
 ## What gets imported
 
@@ -19,7 +19,7 @@ You review every change before it's saved. Nothing is overwritten without your c
 
 ## Privacy
 
-Your imported text is processed in memory and immediately discarded. Spring Post stores only the structured brand voice fields you choose to apply, plus a small audit record (filename, date, fields applied) so you can see what you imported.
+Your imported text is processed in memory and immediately discarded. SF Media stores only the structured brand voice fields you choose to apply, plus a small audit record (filename, date, fields applied) so you can see what you imported.
 
 ---
 
@@ -30,8 +30,8 @@ Recommended for most users. Works for ChatGPT, Claude, Gemini — anything where
 1. Open ChatGPT and click into a conversation that's relevant to your brand.
 2. Press **Cmd+A** (Mac) or **Ctrl+A** (Windows) to select everything in the conversation.
 3. Press **Cmd+C** / **Ctrl+C** to copy.
-4. In Spring Post, go to **Brand Voice** and click **"Import from past chats"**.
-5. Paste into the box. You can paste several conversations one after another in the same box — Spring Post will figure it out.
+4. In SF Media, go to **Brand Voice** and click **"Import from past chats"**.
+5. Paste into the box. You can paste several conversations one after another in the same box — SF Media will figure it out.
 6. Click **Process**. Review what was extracted. Apply the changes you want.
 
 **Tip:** If you paste a lot, expect 30–60 seconds for processing. The progress bar tells you what's happening.
@@ -44,7 +44,7 @@ If you have dozens of conversations, copy-pasting one at a time gets tedious. Us
 
 1. Install a "ChatGPT Exporter" browser extension (search the Chrome/Firefox extension store — there are a few good ones).
 2. Open each conversation you want to import. Click the extension's "Export as markdown" button. Save the `.md` file to a folder on your computer.
-3. In Spring Post, go to **Brand Voice** → **"Import from past chats"** → switch to the **Upload files** tab.
+3. In SF Media, go to **Brand Voice** → **"Import from past chats"** → switch to the **Upload files** tab.
 4. Drag your `.md` files into the upload area, or click to choose them. You can upload up to 20 files (5 MB each).
 5. Click **Process**, review, and apply.
 
@@ -52,7 +52,7 @@ If you have dozens of conversations, copy-pasting one at a time gets tedious. Us
 
 ## What if I have the official ChatGPT export (the zip file)?
 
-ChatGPT's "Export data" feature emails you a zip with a `conversations.json` file. **For now, Spring Post doesn't read this file directly** — you'd need to convert it to markdown or text first using a community tool, or open each conversation in ChatGPT and use Option A.
+ChatGPT's "Export data" feature emails you a zip with a `conversations.json` file. **For now, SF Media doesn't read this file directly** — you'd need to convert it to markdown or text first using a community tool, or open each conversation in ChatGPT and use Option A.
 
 We're considering native support for the official export zip in a future release.
 

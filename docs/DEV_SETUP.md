@@ -1,6 +1,6 @@
 # Developer Setup
 
-How to run Spring Post locally, what conventions to follow, and how to ship changes.
+How to run SF Media locally, what conventions to follow, and how to ship changes.
 
 ---
 
@@ -24,9 +24,9 @@ psql --version    # 16.x
 If you don't have PostgreSQL locally, the easiest option is Docker:
 
 ```bash
-docker run -d --name spring-postgres \
+docker run -d --name sfmedia-postgres \
   -e POSTGRES_PASSWORD=local \
-  -e POSTGRES_DB=spring_post \
+  -e POSTGRES_DB=sf_media \
   -p 5432:5432 \
   postgres:16
 ```
@@ -36,8 +36,8 @@ docker run -d --name spring-postgres \
 ## Initial setup
 
 ```bash
-git clone https://github.com/Building-Agents/spring-post.git
-cd spring-post
+git clone https://github.com/irtazamanzoor21/SF-Media.git
+cd SF-Media
 npm install
 cp .env.example .env   # if .env.example exists; otherwise create .env from scratch
 ```
@@ -45,7 +45,7 @@ cp .env.example .env   # if .env.example exists; otherwise create .env from scra
 Then fill in `.env` with at minimum:
 
 ```bash
-DATABASE_URL=postgres://postgres:local@localhost:5432/spring_post
+DATABASE_URL=postgres://postgres:local@localhost:5432/sf_media
 SESSION_SECRET=any-random-string-for-local-dev
 APP_BASE_URL=http://localhost:5000
 ```
@@ -246,7 +246,7 @@ Usually a destructive schema change drizzle-kit refused to auto-apply. Read the 
 `APP_BASE_URL` is missing or wrong. Set it to the public URL (with `https://`, no trailing slash). Verify by hitting `/api/health-equivalent` (e.g. any auth-required endpoint) and watching the log:
 
 ```
-[email] Outgoing email links will use base URL: https://springpost.buildingagents.ai
+[email] Outgoing email links will use base URL: https://sfmedia.com
 ```
 
 ### "`Validation failed`" on a route I just changed
@@ -271,7 +271,7 @@ Check `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` a
 
 ```bash
 # Reset local DB completely (Docker container)
-docker exec -it spring-postgres psql -U postgres -c "DROP DATABASE spring_post; CREATE DATABASE spring_post;"
+docker exec -it sfmedia-postgres psql -U postgres -c "DROP DATABASE sf_media; CREATE DATABASE sf_media;"
 
 # Verify environment is ready
 node -v && psql -V && cat .env | grep -E "^(DATABASE_URL|SESSION_SECRET|APP_BASE_URL)" | wc -l   # should print 3

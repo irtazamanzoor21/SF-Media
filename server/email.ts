@@ -19,7 +19,7 @@ function getLogoDataUri(): string {
 
 const LOGO_DATA_URI = getLogoDataUri();
 
-const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || "hello@springpost.co";
+const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || "hello@sfmedia.com";
 
 function getAppUrl(): string {
   if (process.env.APP_URL) {
@@ -813,7 +813,7 @@ export async function sendAccountSuspendedEmail({
     <p style="color: #374151; font-size: 14px; line-height: 1.7; margin: 0 0 24px;">
       If you believe this is an error, or if you'd like more information about the suspension, please contact our support team.
     </p>
-    ${ctaButton("mailto:hello@springpost.co", "Contact Support", "linear-gradient(145deg, #991b1b 0%, #b91c1c 100%)")}
+    ${ctaButton("mailto:hello@sfmedia.com", "Contact Support", "linear-gradient(145deg, #991b1b 0%, #b91c1c 100%)")}
     <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 8px 0 0;">
       You can also reply directly to this email.
     </p>`

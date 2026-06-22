@@ -17,7 +17,7 @@ export default function TermsOfServicePage() {
         <p className="text-muted-foreground mb-2" data-testid="text-last-updated">Last updated: February 27, 2026</p>
         <p className="text-muted-foreground mb-8" data-testid="text-app-identity">
           These terms apply to SF Media, operated at{" "}
-          <a href="https://springpost.buildingagents.ai" className="text-primary hover:underline">springpost.buildingagents.ai</a>.
+          <a href="https://sfmedia.com" className="text-primary hover:underline">sfmedia.com</a>.
         </p>
 
         <div className="prose dark:prose-invert max-w-none space-y-6">
@@ -90,7 +90,7 @@ export default function TermsOfServicePage() {
             <h2 className="text-xl font-semibold mb-3">8. Termination</h2>
             <p className="text-muted-foreground leading-relaxed">
               SF Media may terminate or suspend your account immediately, without prior notice or liability, for any reason, including without limitation if you breach these Terms of Service. Upon termination, your right to use SF Media will cease immediately. You may also request account deletion at any time by contacting us at{" "}
-              <a href="mailto:info@springpost.buildingagents.ai" className="text-primary hover:underline">info@springpost.buildingagents.ai</a>.
+              <a href="mailto:info@sfmedia.com" className="text-primary hover:underline">info@sfmedia.com</a>.
             </p>
           </section>
 
@@ -129,11 +129,11 @@ export default function TermsOfServicePage() {
             </p>
             <p className="text-muted-foreground mt-2">
               <strong>Email:</strong>{" "}
-              <a href="mailto:info@springpost.buildingagents.ai" className="text-primary hover:underline">info@springpost.buildingagents.ai</a>
+              <a href="mailto:info@sfmedia.com" className="text-primary hover:underline">info@sfmedia.com</a>
             </p>
             <p className="text-muted-foreground mt-1">
               <strong>Website:</strong>{" "}
-              <a href="https://springpost.buildingagents.ai" className="text-primary hover:underline">springpost.buildingagents.ai</a>
+              <a href="https://sfmedia.com" className="text-primary hover:underline">sfmedia.com</a>
             </p>
           </section>
         </div>

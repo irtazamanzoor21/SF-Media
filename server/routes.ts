@@ -1123,7 +1123,7 @@ export async function registerRoutes(
     console.warn(`[companion] WARNING: NODE_ENV is "${process.env.NODE_ENV || "(unset)"}" — not "production". Session cookie will use sameSite=lax unless APP_BASE_URL overrides it. Set NODE_ENV=production on Azure.`);
   }
   if (!process.env.APP_BASE_URL) {
-    console.warn("[companion] WARNING: APP_BASE_URL is not set. Companion hostname will be derived from each incoming request. Set APP_BASE_URL=https://springpost.buildingagents.ai on Azure to guarantee correct OAuth redirect URLs.");
+    console.warn("[companion] WARNING: APP_BASE_URL is not set. Companion hostname will be derived from each incoming request. Set APP_BASE_URL=https://sfmedia.com on Azure to guarantee correct OAuth redirect URLs.");
   }
 
   if (process.env.APP_BASE_URL || process.env.COMPANION_HOST) {
@@ -1133,7 +1133,7 @@ export async function registerRoutes(
     console.log(`[companion] OneDrive redirect URI: https://${staticHost}/companion/onedrive/redirect`);
   } else {
     console.log("[companion] No APP_BASE_URL or COMPANION_HOST set — host will be derived per-request (one companion instance cached per hostname).");
-    console.log("[companion] For production deployments (e.g. Azure at https://springpost.buildingagents.ai), set APP_BASE_URL=https://springpost.buildingagents.ai and NODE_ENV=production in your environment variables.");
+    console.log("[companion] For production deployments (e.g. Azure at https://sfmedia.com), set APP_BASE_URL=https://sfmedia.com and NODE_ENV=production in your environment variables.");
   }
   console.log("[companion] ────────────────────────────────────────────────");
 
@@ -1251,7 +1251,7 @@ export async function registerRoutes(
       console.log(`[companion] OneDrive redirect URI:   https://${host}/companion/onedrive/redirect`);
       console.log(`[companion] Google Drive redirect URI: https://${host}/companion/googledrive/redirect`);
       if (!process.env.APP_BASE_URL && !process.env.COMPANION_HOST) {
-        console.warn(`[companion] WARNING: host "${host}" was derived from the request. If this is an internal hostname, set APP_BASE_URL=https://springpost.buildingagents.ai in your Azure environment variables.`);
+        console.warn(`[companion] WARNING: host "${host}" was derived from the request. If this is an internal hostname, set APP_BASE_URL=https://sfmedia.com in your Azure environment variables.`);
       }
       const { app: companionApp } = companion.app({
         providerOptions: {

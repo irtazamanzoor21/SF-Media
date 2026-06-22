@@ -115,7 +115,7 @@ For business framing of each feature, see [BUSINESS.md](./BUSINESS.md). For the 
 8. `POST /api/campaigns` returns SSE — UI streams `status` → `post` → `image` events; the user watches posts and images appear in the right sidebar in real time.
 9. After generation completes, the user reviews each post (rich-text editing, image regeneration on demand) and clicks **Save Campaign** (or auto-saves on completion).
 10. Redirect to `/dashboard/campaigns/:id`. User clicks **Connect LinkedIn** in a banner, OAuths through, and lands back on the campaign with LinkedIn marked Connected.
-11. User clicks **Publish Now** on a LinkedIn post → `POST /api/linkedin/post-now`. Spring Post calls LinkedIn's API; on success the post URL is saved to `campaign_posts.platformPostUrl` and the post card shows "Published" with a link.
+11. User clicks **Publish Now** on a LinkedIn post → `POST /api/linkedin/post-now`. SF Media calls LinkedIn's API; on success the post URL is saved to `campaign_posts.platformPostUrl` and the post card shows "Published" with a link.
 
 ### 2. Inviting a teammate
 

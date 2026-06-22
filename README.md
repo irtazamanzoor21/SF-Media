@@ -1,8 +1,8 @@
-# Spring Post
+# SF Media
 
 AI-powered social media campaign platform. Marketers and agencies define their brand voice once, then generate platform-optimized posts (LinkedIn, X, Instagram, Facebook), schedule them, publish them to live accounts, and track engagement — all from a single workspace.
 
-Live: **https://springpost.buildingagents.ai**
+Live: **https://sfmedia.com**
 
 ## Documentation
 
@@ -22,8 +22,8 @@ The full index with reading guidance is in [**docs/README.md**](./docs/README.md
 ## Quick start
 
 ```bash
-git clone https://github.com/Building-Agents/spring-post.git
-cd spring-post
+git clone https://github.com/irtazamanzoor21/SF-Media.git
+cd SF-Media
 npm install
 cp .env.example .env   # edit with at least DATABASE_URL, SESSION_SECRET, APP_BASE_URL
 npm run dev

@@ -17,14 +17,14 @@ export default function PrivacyPolicyPage() {
         <p className="text-muted-foreground mb-2" data-testid="text-last-updated">Last updated: February 27, 2026</p>
         <p className="text-muted-foreground mb-8" data-testid="text-app-identity">
           This privacy policy applies to SF Media, operated at{" "}
-          <a href="https://springpost.buildingagents.ai" className="text-primary hover:underline">springpost.buildingagents.ai</a>.
+          <a href="https://sfmedia.com" className="text-primary hover:underline">sfmedia.com</a>.
         </p>
 
         <div className="prose dark:prose-invert max-w-none space-y-6">
           <section>
             <h2 className="text-xl font-semibold mb-3">1. Introduction</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Welcome to SF Media. We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how SF Media collects, uses, discloses, and safeguards your information when you use our service at springpost.buildingagents.ai.
+              Welcome to SF Media. We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how SF Media collects, uses, discloses, and safeguards your information when you use our service at sfmedia.com.
             </p>
           </section>
 
@@ -115,7 +115,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-xl font-semibold mb-3">7. Data Retention and Deletion</h2>
             <p className="text-muted-foreground leading-relaxed">
               SF Media retains your personal information for as long as your account is active or as needed to provide you services. You may request deletion of your account and associated data at any time by contacting us at{" "}
-              <a href="mailto:info@springpost.buildingagents.ai" className="text-primary hover:underline">info@springpost.buildingagents.ai</a>.
+              <a href="mailto:info@sfmedia.com" className="text-primary hover:underline">info@sfmedia.com</a>.
               Upon receiving a deletion request, we will delete your personal information within 30 days, except where we are required to retain it by law.
             </p>
           </section>
@@ -124,7 +124,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-xl font-semibold mb-3">8. Your Rights</h2>
             <p className="text-muted-foreground leading-relaxed">
               Depending on your location, you may have certain rights regarding your personal information, including the right to access, correct, delete, or port your data. You may also have the right to opt out of certain processing activities. To exercise any of these rights, please contact us at{" "}
-              <a href="mailto:info@springpost.buildingagents.ai" className="text-primary hover:underline">info@springpost.buildingagents.ai</a>.
+              <a href="mailto:info@sfmedia.com" className="text-primary hover:underline">info@sfmedia.com</a>.
             </p>
           </section>
 
@@ -149,11 +149,11 @@ export default function PrivacyPolicyPage() {
             </p>
             <p className="text-muted-foreground mt-2">
               <strong>Email:</strong>{" "}
-              <a href="mailto:info@springpost.buildingagents.ai" className="text-primary hover:underline">info@springpost.buildingagents.ai</a>
+              <a href="mailto:info@sfmedia.com" className="text-primary hover:underline">info@sfmedia.com</a>
             </p>
             <p className="text-muted-foreground mt-1">
               <strong>Website:</strong>{" "}
-              <a href="https://springpost.buildingagents.ai" className="text-primary hover:underline">springpost.buildingagents.ai</a>
+              <a href="https://sfmedia.com" className="text-primary hover:underline">sfmedia.com</a>
             </p>
           </section>
         </div>

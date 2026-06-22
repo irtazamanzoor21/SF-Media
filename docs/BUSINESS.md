@@ -1,16 +1,16 @@
-# Spring Post — Business Overview
+# SF Media — Business Overview
 
 This document is for non-engineering readers (founders, sales, PMs, investors, new hires). It explains what the product does, who it serves, how it makes money, and what makes it differentiated.
 
 ---
 
-## What is Spring Post?
+## What is SF Media?
 
-Spring Post is a SaaS platform that lets a marketing team or agency turn a single campaign brief into a full set of platform-optimized social media posts — and then publish, schedule, and track them — all from one workspace.
+SF Media is a SaaS platform that lets a marketing team or agency turn a single campaign brief into a full set of platform-optimized social media posts — and then publish, schedule, and track them — all from one workspace.
 
-Instead of writing four versions of the same post (one for LinkedIn, one for X, one for Instagram, one for Facebook) and resizing the image four times, the user describes the campaign once. Spring Post generates everything — the captions in the right tone for each platform, the images at the right dimensions, the hashtags within each platform's conventions — and queues them for publishing.
+Instead of writing four versions of the same post (one for LinkedIn, one for X, one for Instagram, one for Facebook) and resizing the image four times, the user describes the campaign once. SF Media generates everything — the captions in the right tone for each platform, the images at the right dimensions, the hashtags within each platform's conventions — and queues them for publishing.
 
-The differentiator is **brand voice persistence**. Spring Post analyzes the user's existing brand materials (pitch deck, website, marketing copy) once during onboarding, builds a structured brand profile, and feeds that profile into every future post-generation prompt. The output sounds like *that brand*, not like generic AI copy.
+The differentiator is **brand voice persistence**. SF Media analyzes the user's existing brand materials (pitch deck, website, marketing copy) once during onboarding, builds a structured brand profile, and feeds that profile into every future post-generation prompt. The output sounds like *that brand*, not like generic AI copy.
 
 ---
 
@@ -30,7 +30,7 @@ The differentiator is **brand voice persistence**. Spring Post analyzes the user
 
 A social media strategist's job has three repetitive sub-tasks: (1) interpret the brand voice, (2) produce platform-appropriate copy and imagery at scale, (3) keep a publishing rhythm going.
 
-Spring Post automates all three:
+SF Media automates all three:
 
 1. **Brand voice once, applied forever.** The AI extracts tone, messaging pillars, do/don't language rules, preferred CTAs, and hashtag themes from uploaded materials. Every subsequent generation respects those rules.
 2. **Platform-aware generation.** A single brief produces 4 platform-tailored posts. Character limits, hashtag conventions (3 on X, 8–15 on Instagram), image aspect ratios (1080×1080 for IG, 1200×627 for LinkedIn), and recommended length all enforced automatically.
@@ -40,7 +40,7 @@ Spring Post automates all three:
 
 ## Supported platforms
 
-Spring Post produces and publishes to these social networks:
+SF Media produces and publishes to these social networks:
 
 | Platform | Character limit | Image dimensions | Recommended length | Hashtag norm | Auth |
 |----------|-----------------|------------------|--------------------|--------------|------|
@@ -152,8 +152,8 @@ Detailed walkthroughs (with the pages and APIs each step touches) are in [FEATUR
 | **Terms of Service** | Public page at `/terms-of-service`. |
 | **GDPR** | Soft-delete via `deleted_at` columns on users and organizations; super admin can permanently purge via admin panel. Data deletion request URL must remain public for Meta App Review. |
 | **Meta App Review** | Submission notes for Facebook/Instagram permissions (`pages_show_list`, `pages_manage_posts`, `pages_read_engagement`, `business_management`, `instagram_basic`, `instagram_content_publish`, `instagram_manage_insights`) are kept in [APP_REVIEW_NOTES.md](../APP_REVIEW_NOTES.md). Until approved, the Facebook/Instagram integration is in Development Mode and only app-role users can authenticate. |
-| **Email deliverability** | SendGrid SMTP. `SENDGRID_FROM_EMAIL` defaults to `hello@springpost.co`. |
-| **Stripe compliance** | Stripe handles PCI; Spring Post never sees card data. Customer Portal for self-serve refunds/cancels. |
+| **Email deliverability** | SendGrid SMTP. `SENDGRID_FROM_EMAIL` defaults to `hello@sfmedia.com`. |
+| **Stripe compliance** | Stripe handles PCI; SF Media never sees card data. Customer Portal for self-serve refunds/cancels. |
 | **Authentication** | Passwords hashed with bcrypt (cost 10). Session cookies are HttpOnly + Secure + SameSite=lax in production. Super admins use a separate session. |
 | **Data residency** | PostgreSQL hosted via the team's own provider (`DATABASE_URL` defines location). Cloudinary serves images globally via CDN. |
 
@@ -161,11 +161,11 @@ Detailed walkthroughs (with the pages and APIs each step touches) are in [FEATUR
 
 ## Differentiation & positioning
 
-| Common alternative | What Spring Post does differently |
+| Common alternative | What SF Media does differently |
 |--------------------|-----------------------------------|
-| **Buffer / Hootsuite / Agorapulse** | Those tools schedule existing posts. Spring Post *generates* the posts in the brand's voice, then schedules them. Single-tool workflow for ideation → publish. |
-| **ChatGPT / generic AI writers** | They produce one-off copy with no brand memory. Spring Post extracts the brand profile once and applies it to every future post automatically. |
-| **In-house copywriter** | Slow, expensive, limited platform expertise. Spring Post is instant, scales linearly with quota, and bakes platform-specific best practices into every output. |
-| **Canva for design + a separate tool for copy** | Disconnected. Spring Post produces image + copy together, both tuned to the same campaign brief. |
+| **Buffer / Hootsuite / Agorapulse** | Those tools schedule existing posts. SF Media *generates* the posts in the brand's voice, then schedules them. Single-tool workflow for ideation → publish. |
+| **ChatGPT / generic AI writers** | They produce one-off copy with no brand memory. SF Media extracts the brand profile once and applies it to every future post automatically. |
+| **In-house copywriter** | Slow, expensive, limited platform expertise. SF Media is instant, scales linearly with quota, and bakes platform-specific best practices into every output. |
+| **Canva for design + a separate tool for copy** | Disconnected. SF Media produces image + copy together, both tuned to the same campaign brief. |
 
 The bet: marketers will pay to *not* think about platform conventions, brand consistency, and idea generation, and to keep all that work in a single workspace with their team.

@@ -1,6 +1,6 @@
 # Architecture
 
-This document describes how Spring Post is built end-to-end: the tech stack, the layout, the design patterns, and the runtime topology. Read this before you write your first feature.
+This document describes how SF Media is built end-to-end: the tech stack, the layout, the design patterns, and the runtime topology. Read this before you write your first feature.
 
 ---
 
@@ -93,7 +93,7 @@ PostgreSQL 16, accessed via Drizzle. Tables are declared in [shared/schema.ts](.
 | Build | Oryx auto-build on Azure (`npm install` + `npm run build`) |
 | CI/CD | **GitHub Actions** on push to `development` branch |
 | Deploy | `azure/webapps-deploy@v3` via federated identity (no secrets) |
-| Custom domain | `springpost.buildingagents.ai` |
+| Custom domain | `sfmedia.com` |
 | TLS | Managed by Azure |
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for the full pipeline.
@@ -103,7 +103,7 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for the full pipeline.
 ## Repository layout
 
 ```
-spring-post/
+SF-Media/
 ├── client/src/
 │   ├── App.tsx                  # Root with wouter routes + ThemeProvider + AuthProvider
 │   ├── main.tsx                 # Entry; mounts <App />
@@ -450,7 +450,7 @@ If any of the above fails, the app continues to boot — schema desync is logged
 
 ## Scheduling architecture
 
-Scheduled posts live in `scheduled_social_posts` (Facebook-specific) or are stored as `campaign_posts.scheduledAt` for other platforms. Spring Post does **not** run an internal cron — instead:
+Scheduled posts live in `scheduled_social_posts` (Facebook-specific) or are stored as `campaign_posts.scheduledAt` for other platforms. SF Media does **not** run an internal cron — instead:
 
 - **Facebook**: scheduled via Facebook's native Page-scheduling API (`scheduled_publish_time` parameter on `POST /{page-id}/feed`). FB does the actual scheduling on their end.
 - **X / LinkedIn / Instagram**: scheduled by storing `scheduledAt` and relying on a future job runner (or, today, manual user click — verify with the team if a scheduler has been added).

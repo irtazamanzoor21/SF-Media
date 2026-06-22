@@ -306,8 +306,8 @@ export default function HomePage() {
 
             <div className="flex items-center gap-2 text-sm text-muted-foreground" data-testid="text-footer-contact">
               <Mail className="w-4 h-4" />
-              <a href="mailto:hello@springpost.co" className="hover:text-foreground transition-colors">
-                hello@springpost.co
+              <a href="mailto:hello@sfmedia.com" className="hover:text-foreground transition-colors">
+                hello@sfmedia.com
               </a>
             </div>
 
