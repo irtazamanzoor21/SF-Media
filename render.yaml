@@ -7,8 +7,9 @@
 # - Build installs devDeps (tsx/vite/esbuild) because NODE_ENV is unset during build;
 #   `npm start` sets NODE_ENV=production at runtime.
 # - PORT is provided by Render automatically (the app reads process.env.PORT).
-# - APP_BASE_URL is intentionally NOT listed: the app falls back to Render's
-#   RENDER_EXTERNAL_URL automatically. Set APP_BASE_URL only for a custom domain.
+# - APP_BASE_URL is set explicitly below so every module (incl. the email module,
+#   which reads it at import time) sees it from process start. Update it for a
+#   custom domain.
 # - All secrets are `sync: false` (you enter them in the Render dashboard; nothing
 #   secret is committed).
 services:
@@ -20,17 +21,26 @@ services:
     # Heap ceilings are set PER-COMMAND, not via a global NODE_OPTIONS env var,
     # because build and runtime have opposite needs:
     #   • Build: the Vite/esbuild step needs a HIGH ceiling (~2GB) or it OOMs.
-    #   • Runtime: the instance is only 512MB, so the ceiling must sit BELOW that
-    #     (~400MB) — otherwise V8 thinks it has tons of headroom, skips GC, drifts
-    #     past 512MB, and Render's container OOM-killer kills the process (crash loop).
+    #   • Runtime: the instance is only 512MB. --max-old-space-size caps ONLY V8's
+    #     old-space heap; off-heap memory (aws-sdk v2 pulled in by Companion, pg, ws,
+    #     native modules, the bundle ~3MB) stacks ON TOP of it. A 400 cap left
+    #     400(heap)+~150(off-heap) > 512 → container OOM-kill → crash loop. So the
+    #     heap is capped to 256: the app's real working set is ~97MB, so 256 is
+    #     ample for live objects, and 256+off-heap stays safely under 512.
     # An inline `NODE_OPTIONS=...` on each command also OVERRIDES any stale
     # NODE_OPTIONS still synced onto the service from an earlier blueprint.
     buildCommand: npm install && NODE_OPTIONS=--max-old-space-size=2048 npm run build
-    startCommand: NODE_OPTIONS=--max-old-space-size=400 npm start
+    startCommand: NODE_OPTIONS=--max-old-space-size=256 npm start
     autoDeploy: true
     envVars:
       - key: NODE_VERSION
         value: "22"
+      # Set explicitly (not just relying on the RENDER_EXTERNAL_URL code-fallback):
+      # the email module captures APP_BASE_URL at import time, before that fallback
+      # runs, so without this its links point at localhost. Change this if you move
+      # to a custom domain.
+      - key: APP_BASE_URL
+        value: "https://sf-media.onrender.com"
       # ── Required ──
       - key: DATABASE_URL
         sync: false
