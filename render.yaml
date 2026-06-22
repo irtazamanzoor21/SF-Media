@@ -17,17 +17,20 @@ services:
     runtime: node
     plan: free            # change to "starter" (~$7/mo) for always-on (no spin-down → schedulers run 24/7)
     branch: main
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    # Heap ceilings are set PER-COMMAND, not via a global NODE_OPTIONS env var,
+    # because build and runtime have opposite needs:
+    #   • Build: the Vite/esbuild step needs a HIGH ceiling (~2GB) or it OOMs.
+    #   • Runtime: the instance is only 512MB, so the ceiling must sit BELOW that
+    #     (~400MB) — otherwise V8 thinks it has tons of headroom, skips GC, drifts
+    #     past 512MB, and Render's container OOM-killer kills the process (crash loop).
+    # An inline `NODE_OPTIONS=...` on each command also OVERRIDES any stale
+    # NODE_OPTIONS still synced onto the service from an earlier blueprint.
+    buildCommand: npm install && NODE_OPTIONS=--max-old-space-size=2048 npm run build
+    startCommand: NODE_OPTIONS=--max-old-space-size=400 npm start
     autoDeploy: true
     envVars:
       - key: NODE_VERSION
         value: "22"
-      # High ceiling so the Vite build has enough heap. (Runtime only uses ~100MB,
-      # so this is harmless at runtime; it's a max, not an allocation.) This also
-      # OVERRIDES any leftover lower NODE_OPTIONS previously synced to the service.
-      - key: NODE_OPTIONS
-        value: "--max-old-space-size=2048"
       # ── Required ──
       - key: DATABASE_URL
         sync: false
