@@ -46,13 +46,10 @@ import { registerInstagramRoutes } from "./instagram";
 import { registerLinkedInRoutes } from "./linkedin";
 import { registerXRoutes } from "./x";
 import crypto from "crypto";
-import * as pdfParseModule from "pdf-parse";
-import * as mammothModule from "mammoth";
 import * as companion from "@uppy/companion";
 import { WebSocketServer } from "ws";
 import { createHmac } from "node:crypto";
 import * as fs from "fs";
-const pdfParse = (pdfParseModule as any).default || pdfParseModule;
 
 function parseGeminiJson(raw: string): any {
   let text = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
@@ -242,8 +239,6 @@ function cleanBrandProfileArrays(profile: any): any {
   return profile;
 }
 
-const mammoth = (mammothModule as any).default || mammothModule;
-
 // Document types the onboarding extractor can actually read (mirrors the client allow-list).
 const ONBOARDING_ALLOWED_MIMES = new Set([
   "application/pdf",
@@ -395,6 +390,8 @@ async function extractTextFromFile(file: Express.Multer.File): Promise<string> {
       }
     }
     if (type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      const mammothMod = await import("mammoth");
+      const mammoth = (mammothMod as any).default || mammothMod;
       const result = await mammoth.extractRawText({ buffer: file.buffer });
       return result.value.slice(0, 50000);
     }
