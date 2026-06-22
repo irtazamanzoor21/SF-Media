@@ -35,6 +35,14 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "22"
+      # THE key fix for the 512MB OOM crash loop. glibc (Linux's allocator) creates
+      # up to 8 arenas PER CPU CORE, and each arena retains freed memory rather than
+      # returning it to the OS. Render's host has many cores, so RSS ballooned far
+      # past the actual ~100MB heap and the container OOM-killer crash-looped the
+      # process. macOS doesn't use glibc, so this never reproduced locally. Pinning
+      # arenas to 2 keeps RSS close to real usage. (Harmless during the build.)
+      - key: MALLOC_ARENA_MAX
+        value: "2"
       # Set explicitly (not just relying on the RENDER_EXTERNAL_URL code-fallback):
       # the email module captures APP_BASE_URL at import time, before that fallback
       # runs, so without this its links point at localhost. Change this if you move
