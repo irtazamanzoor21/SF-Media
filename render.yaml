@@ -23,6 +23,11 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "22"
+      # High ceiling so the Vite build has enough heap. (Runtime only uses ~100MB,
+      # so this is harmless at runtime; it's a max, not an allocation.) This also
+      # OVERRIDES any leftover lower NODE_OPTIONS previously synced to the service.
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=2048"
       # ── Required ──
       - key: DATABASE_URL
         sync: false
