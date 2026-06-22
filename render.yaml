@@ -1,0 +1,79 @@
+# Render Blueprint for SF Media — https://render.com/docs/blueprint-spec
+#
+# A persistent Node web service (NOT serverless), so the background schedulers,
+# WebSocket upload progress, and Companion uploads all work.
+#
+# Notes:
+# - Build installs devDeps (tsx/vite/esbuild) because NODE_ENV is unset during build;
+#   `npm start` sets NODE_ENV=production at runtime.
+# - PORT is provided by Render automatically (the app reads process.env.PORT).
+# - APP_BASE_URL is intentionally NOT listed: the app falls back to Render's
+#   RENDER_EXTERNAL_URL automatically. Set APP_BASE_URL only for a custom domain.
+# - All secrets are `sync: false` (you enter them in the Render dashboard; nothing
+#   secret is committed).
+services:
+  - type: web
+    name: sf-media
+    runtime: node
+    plan: free            # change to "starter" (~$7/mo) for always-on (no spin-down → schedulers run 24/7)
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # ── Required ──
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: SUPER_ADMIN_SETUP_TOKEN
+        sync: false
+      # ── Google sign-in + Companion (Drive) ──
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: COMPANION_GOOGLE_KEY
+        sync: false
+      - key: COMPANION_GOOGLE_SECRET
+        sync: false
+      - key: COMPANION_SECRET
+        sync: false
+      # ── Social platforms ──
+      - key: FACEBOOK_APP_ID
+        sync: false
+      - key: FACEBOOK_APP_SECRET
+        sync: false
+      - key: LINKEDIN_CLIENT_ID
+        sync: false
+      - key: LINKEDIN_CLIENT_SECRET
+        sync: false
+      - key: X_API_KEY
+        sync: false
+      - key: X_API_SECRET
+        sync: false
+      - key: X_CLIENT_ID
+        sync: false
+      - key: X_CLIENT_SECRET
+        sync: false
+      # ── Optional (email + extra Companion providers + X OAuth1) ──
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: SENDGRID_FROM_EMAIL
+        sync: false
+      # - key: X_OAUTH1_TOKEN
+      # - key: X_OAUTH1_TOKEN_SECRET
+      # - key: COMPANION_ONEDRIVE_KEY
+      # - key: COMPANION_ONEDRIVE_SECRET
+      # - key: COMPANION_UNSPLASH_KEY
+      # - key: APP_BASE_URL   # only needed for a custom domain

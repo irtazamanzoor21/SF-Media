@@ -8,7 +8,6 @@ const allowlist = [
   "@google-cloud/storage",
   "@google/generative-ai",
   "@sendgrid/mail",
-  "@uppy/companion",
   "axios",
   "bcryptjs",
   "cloudinary",
@@ -64,6 +63,13 @@ async function buildAll() {
   ];
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
+  // @uppy/companion is loaded from node_modules at runtime (external, like pdf-parse)
+  // rather than bundled: its OAuth subtree (grant → request-compose) uses computed
+  // require("./request/" + name) and optional-framework requires (koa/hapi) that
+  // esbuild can't bundle into a single CJS file. Keeping the subtree external avoids
+  // those bundle-time/runtime "module not found in bundle" failures.
+  const optionalExternals = ["@uppy/companion", "grant", "request-compose", "koa", "@hapi/hapi", "hapi"];
+
   await esbuild({
     entryPoints: ["server/index.ts"],
     platform: "node",
@@ -74,7 +80,7 @@ async function buildAll() {
       "process.env.NODE_ENV": '"production"',
     },
     minify: true,
-    external: externals,
+    external: [...externals, ...optionalExternals],
     logLevel: "info",
   });
 }

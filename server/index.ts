@@ -12,6 +12,15 @@ import { postToLinkedIn, fetchLinkedInMetrics } from "./linkedin";
 import { postToX, getValidXAccessToken, fetchXMetrics } from "./x";
 import dotenv from "dotenv";
 dotenv.config();
+
+// On hosts like Render, default APP_BASE_URL to the service's external URL when not
+// explicitly configured. Ensures HTTPS cookies, OAuth redirects, and Companion use
+// the correct public origin without a manual first-deploy step. A custom domain can
+// still override this by setting APP_BASE_URL explicitly.
+if (!process.env.APP_BASE_URL && process.env.RENDER_EXTERNAL_URL) {
+  process.env.APP_BASE_URL = process.env.RENDER_EXTERNAL_URL;
+}
+
 const app = express();
 app.set("trust proxy", 1);
 const httpServer = createServer(app);
