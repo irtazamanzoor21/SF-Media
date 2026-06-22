@@ -23,6 +23,10 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "22"
+      # Keep V8's heap under the 512MB free-tier limit so the process GCs
+      # aggressively instead of being OOM-killed. Raise/remove on a larger plan.
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=400"
       # ── Required ──
       - key: DATABASE_URL
         sync: false
