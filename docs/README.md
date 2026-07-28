@@ -46,7 +46,7 @@ This is the canonical documentation for the project. Use the index below to jump
 | Frontend | React 18 + TypeScript + Vite + Tailwind + shadcn/ui + TanStack React Query |
 | Backend | Node.js 22 + Express 5 + TypeScript (tsx in dev, esbuild bundle in prod) |
 | Database | PostgreSQL via Drizzle ORM |
-| AI | Google Gemini 2.5 Flash (text + image) |
+| AI | OpenAI (gpt-4.1-mini text + gpt-image-1 images) |
 | Image storage | Cloudinary CDN |
 | Email | SendGrid SMTP via Nodemailer |
 | Payments | Stripe (subscriptions + webhooks) |
@@ -75,7 +75,7 @@ SF-Media/
 │   ├── stripe.ts          # Subscription + webhook handling
 │   ├── x.ts, linkedin.ts, facebook.ts  # Per-platform publishing
 │   ├── email.ts           # Transactional email
-│   ├── image-service.ts   # Gemini image gen + Cloudinary upload
+│   ├── image-service.ts   # OpenAI image gen + Cloudinary upload
 │   └── competitor-analysis.ts  # DataForSEO integration
 ├── shared/           # Code shared between client and server
 │   └── schema.ts          # Drizzle tables + Zod schemas + constants (single source of truth)

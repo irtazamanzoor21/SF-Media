@@ -8,7 +8,8 @@ import { pool } from "./db";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import { OAuth2Client } from "google-auth-library";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateText, getOpenAI, TEXT_MODEL } from "./openai-client";
+import { IMAGE_PROMPT_RULES } from "./image-prompt-rules";
 import { z } from "zod";
 import {
   loginSchema, registerSchema, companyInfoSchema, brandProfileUpdateSchema, createCampaignSchema,
@@ -51,7 +52,7 @@ import { WebSocketServer } from "ws";
 import { createHmac } from "node:crypto";
 import * as fs from "fs";
 
-function parseGeminiJson(raw: string): any {
+function parseModelJson(raw: string): any {
   let text = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 
   const startIdx = text.search(/[\[{]/);
@@ -93,7 +94,7 @@ function parseGeminiJson(raw: string): any {
     } catch {}
   }
 
-  throw new Error("Failed to parse Gemini JSON response");
+  throw new Error("Failed to parse model JSON response");
 }
 
 function stripMd(text: string): string {
@@ -101,7 +102,7 @@ function stripMd(text: string): string {
 }
 
 // Best-effort: infer what the chat assistant is asking for, from its reply
-// text. Used ONLY in the rare validation-failure path (Gemini returned
+// text. Used ONLY in the rare validation-failure path (the model returned
 // unparseable JSON, so there's no captured state to infer from). Analyses
 // just the LAST sentence — earlier sentences recap prior answers and would
 // cause false positives (e.g. "Got it, a friendly tone… how many posts?").
@@ -168,7 +169,7 @@ function inferFieldFromMissingState(e: {
 }
 
 // Normalize a parsed-but-unvalidated chat state object so it passes Zod.
-// Gemini commonly returns slightly-off shapes — capitalized enum values
+// The model commonly returns slightly-off shapes — capitalized enum values
 // ("LinkedIn", "Casual"), "twitter" instead of "x", a string postsCount,
 // an over-long CTA. Without this, one malformed field rejects the whole
 // object and the user dead-ends with no Review & Create button.
@@ -294,8 +295,6 @@ function checkTestReminderRateLimit(userId: number): { allowed: boolean; retryAf
   return { allowed: true, retryAfterSec: 0 };
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
 // Fallback for the campaign chat: when the inline ###STATE### JSON is missing
 // or unusable, run ONE focused extraction-only call over the full transcript
 // PLUS the assistant's reply. Sees the reply, so it stays consistent with it.
@@ -328,14 +327,15 @@ Return ONLY a JSON object (no markdown fences) with these keys:
 - defaultedFields (array of strings — fields the user explicitly told you to default/skip)
 
 Output JSON only.`;
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: { temperature: 0.2, maxOutputTokens: 800 },
+    const raw = await generateText({
+      label: "chat-extract-fallback",
+      prompt,
+      temperature: 0.2,
+      maxTokens: 800,
+      json: true,
     });
-    const result = await model.generateContent(prompt);
-    const raw = result.response.text() || "";
     if (!raw.trim()) return null;
-    return normalizeChatState(parseGeminiJson(raw));
+    return normalizeChatState(parseModelJson(raw));
   } catch (e) {
     console.error("Campaign chat — fallback extraction failed:", (e as Error).message);
     return null;
@@ -372,21 +372,21 @@ async function extractTextFromFile(file: Express.Multer.File): Promise<string> {
       return file.buffer.toString("utf-8").slice(0, 50000);
     }
     if (type === "application/pdf") {
+      // pdf-parse v2 exports a PDFParse class (the v1 default function is gone).
+      // Dynamic import keeps it external in the esbuild bundle — see the comment
+      // in script/build.ts. destroy() releases the pdfjs worker handle; without
+      // it every upload leaks one.
+      let parser: any = null;
       try {
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        const result = await model.generateContent([
-          {
-            inlineData: {
-              mimeType: "application/pdf",
-              data: file.buffer.toString("base64"),
-            },
-          },
-          "Extract all the text content from this PDF document. Return only the extracted text, preserving the structure and formatting as much as possible. No commentary or summaries — just the raw text.",
-        ]);
-        return (result.response.text() || "").slice(0, 50000);
+        const { PDFParse } = await import("pdf-parse");
+        parser = new PDFParse({ data: new Uint8Array(file.buffer) });
+        const result = await parser.getText();
+        return (result.text || "").slice(0, 50000);
       } catch (pdfError: any) {
-        console.error("PDF AI extraction error:", pdfError.message);
+        console.error("PDF extraction error:", pdfError.message);
         return "";
+      } finally {
+        try { await parser?.destroy(); } catch {}
       }
     }
     if (type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
@@ -397,17 +397,16 @@ async function extractTextFromFile(file: Express.Multer.File): Promise<string> {
     }
     if (type.startsWith("image/")) {
       const base64Image = file.buffer.toString("base64");
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-      const result = await model.generateContent([
-        {
-          inlineData: {
-            mimeType: type,
-            data: base64Image,
+      return await generateText({
+        label: "image-ocr",
+        prompt: [
+          { type: "image_url", image_url: { url: `data:${type};base64,${base64Image}` } },
+          {
+            type: "text",
+            text: "Extract all visible text from this image. If there is no text, describe the visual branding elements (colors, logos, style, mood). Return only the extracted/described content, no commentary.",
           },
-        },
-        "Extract all visible text from this image. If there is no text, describe the visual branding elements (colors, logos, style, mood). Return only the extracted/described content, no commentary.",
-      ]);
-      return result.response.text() || "";
+        ],
+      });
     }
   } catch (e: any) {
     console.error(`Error extracting text from ${file.originalname}:`, e.message);
@@ -541,11 +540,14 @@ Return a JSON object with these fields:
 
 Return ONLY valid JSON, no markdown code fences.`;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash", generationConfig: { temperature: 0.7, maxOutputTokens: 4000 } });
-  const result = await model.generateContent(prompt);
-
-  const content = result.response.text() || "{}";
-  return cleanBrandProfileArrays(parseGeminiJson(content));
+  const content = await generateText({
+    label: "brand-voice",
+    prompt,
+    temperature: 0.7,
+    maxTokens: 4000,
+    json: true,
+  }) || "{}";
+  return cleanBrandProfileArrays(parseModelJson(content));
 }
 
 async function generateSamplePosts(profile: any): Promise<{ linkedin: string; instagram: string }> {
@@ -566,11 +568,14 @@ Requirements:
 
 Return ONLY valid JSON with fields "linkedin" and "instagram". No markdown fences.`;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash", generationConfig: { temperature: 0.8, maxOutputTokens: 3000 } });
-  const result = await model.generateContent(prompt);
-
-  const content = result.response.text() || "{}";
-  return parseGeminiJson(content);
+  const content = await generateText({
+    label: "sample-posts",
+    prompt,
+    temperature: 0.8,
+    maxTokens: 3000,
+    json: true,
+  }) || "{}";
+  return parseModelJson(content);
 }
 
 async function generateCampaignPosts(
@@ -678,6 +683,8 @@ Market Intelligence Rules:
 - Do NOT mention competitor brand names directly in the posts
 - Only use market intelligence to inspire topic angles and vocabulary — brand voice and campaign tone remain primary` : ""}
 
+${IMAGE_PROMPT_RULES}
+
 === OUTPUT FORMAT ===
 Return ONLY a valid JSON array with exactly ${campaignSettings.postsCount} objects. No preamble, no explanation, no markdown — raw JSON only.
 Each object must follow this exact schema:
@@ -685,7 +692,7 @@ Each object must follow this exact schema:
   "platform": "string — the target platform label",
   "content": "string — the post text, hashtags excluded",
   "hashtags": ["string", "string"],
-  "imagePrompt": "string — 50 to 100 words describing the visual: subject, setting, mood, color palette, lighting style, and what to avoid",
+  "imagePrompt": "string — 50 to 100 words. A photographic description of ONE concrete scene that illustrates THIS post's specific subject per the IMAGE PROMPT RULES. Name subject, setting, action, lighting, and colour palette. Contains no text/letters/logos and none of the banned generic visuals.",
   "strategyNote": "string — one sentence naming which pattern from the top-performing posts was applied and how"
 }`;
 
@@ -714,11 +721,16 @@ Each object must follow this exact schema:
     });
   }
 
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash", generationConfig: { temperature: 0.7, maxOutputTokens: 16000 } });
-  const result = await model.generateContent(prompt);
-
-  const rawContent = result.response.text() || "[]";
-  const parsed = parseGeminiJson(rawContent);
+  // NOTE: no json:true here — this prompt returns a top-level JSON *array*, and
+  // response_format json_object would force it into an object wrapper, breaking
+  // mapParsedPosts (which calls .map on the result). Same for the retry below.
+  const rawContent = await generateText({
+    label: "campaign-posts",
+    prompt,
+    temperature: 0.7,
+    maxTokens: 16000,
+  }) || "[]";
+  const parsed = parseModelJson(rawContent);
   let posts = mapParsedPosts(parsed)
     .filter(p => p.content && p.content.trim().length > 0)
     .slice(0, campaignSettings.postsCount);
@@ -737,9 +749,19 @@ Each object must follow this exact schema:
         `Across all ${campaignSettings.postsCount} posts, vary the opening hook type`,
         `Across all ${missing} posts, vary the opening hook type`
       );
-      const retryResult = await model.generateContent(retryPrompt);
-      const retryRaw = retryResult.response.text() || "[]";
-      const retryParsed = parseGeminiJson(retryRaw);
+      // The three .replace() calls above match literals in the prompt template.
+      // If that text ever drifts they silently no-op and we re-request the full
+      // count instead of just the missing ones — surface it rather than guess.
+      if (retryPrompt === prompt) {
+        console.error("[generateCampaignPosts] Retry prompt substitution failed — prompt text drifted from the .replace() literals.");
+      }
+      const retryRaw = await generateText({
+        label: "campaign-posts-retry",
+        prompt: retryPrompt,
+        temperature: 0.7,
+        maxTokens: 16000,
+      }) || "[]";
+      const retryParsed = parseModelJson(retryRaw);
       const retryPosts = mapParsedPosts(retryParsed).filter(p => p.content && p.content.trim().length > 0);
       posts = [...posts, ...retryPosts].slice(0, campaignSettings.postsCount);
     } catch (retryErr: any) {
@@ -835,12 +857,12 @@ ${sanitizedFeedback}
     console.log("[refinePostContent] prompt:\n", prompt);
   }
 
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-    generationConfig: { temperature: 0.7, maxOutputTokens: 4000 },
-  });
-  const result = await model.generateContent(prompt);
-  let out = (result.response.text() || "").trim();
+  let out = (await generateText({
+    label: "refine-post",
+    prompt,
+    temperature: 0.7,
+    maxTokens: 4000,
+  })).trim();
 
   // Strip surrounding quotes / code fences if the model adds them anyway.
   if (out.startsWith("```")) {
@@ -869,7 +891,7 @@ ${sanitizedFeedback}
 // data URL (NOT uploaded to Cloudinary — that happens on apply, so
 // discarded previews don't accumulate orphan uploads).
 // Rewrites the original image prompt into a new, complete image prompt that
-// incorporates the user's feedback. Run as a separate Gemini text call before
+// incorporates the user's feedback. Run as a separate text call before
 // the actual image generation — produces something the text-to-image model
 // can render from scratch without any reference image.
 //
@@ -895,6 +917,9 @@ Produce a NEW, complete image-generation prompt that:
 2. Fully expresses the USER FEEDBACK in concrete visual terms. Translate vague language into specifics — e.g., "more realistic" → "photorealistic photography, real photo aesthetic, natural lighting"; "different palette" → name the new palette; "more energetic" → describe the visual cues (motion, contrast, bold color).
 3. Stays on-brand and on-topic with the CAMPAIGN BRIEF.
 4. Is suitable for the ${platSettings.label} platform.
+5. Describes ONE concrete, physical, photographable scene with a single clear focal subject at the CENTRE of the frame (the image is centre-cropped for publishing). Not an abstract illustration of a theme.
+6. Contains NO text in the image — no words, letters, numerals, logos, wordmarks, UI labels, captions, or watermarks. Image models render text as garbled glyphs.
+7. Avoids stock-photo clichés unless the feedback explicitly asks for one: people pointing at screens or charts, glowing brains, glowing circuit boards, humanoid robots, floating holographic dashboards, generic teams in modern offices, handshakes, rising arrows, lightbulbs, gears, abstract blue swirls, particle networks, binary-code backgrounds.
 
 The new prompt will be sent to a text-to-image model with NO input image, so it MUST contain every detail the model needs to reproduce what should be preserved. Be explicit and concrete; do not say "as before" or "same as the previous" — the model has no memory of the previous image.
 
@@ -916,12 +941,12 @@ Output ONLY the new image prompt. No preamble, no labels, no quotes, no commenta
     console.log("[buildRefinedImagePrompt] meta-prompt:\n", metaPrompt);
   }
 
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-    generationConfig: { temperature: 0.4, maxOutputTokens: 1500 },
-  });
-  const result = await model.generateContent(metaPrompt);
-  let out = (result.response.text() || "").trim();
+  let out = (await generateText({
+    label: "refine-image-prompt",
+    prompt: metaPrompt,
+    temperature: 0.4,
+    maxTokens: 1500,
+  })).trim();
 
   // Strip surrounding code fences and quotes if the model adds them anyway.
   if (out.startsWith("```")) {
@@ -943,7 +968,7 @@ async function refinePostImageDataUrl(args: {
   brandProfile: any | null;
 }): Promise<{ dataUrl: string; refinedPrompt: string }> {
   // Step 1: build a fresh, complete image prompt from original + feedback.
-  // A Gemini text call translates vague feedback ("more realistic",
+  // A text call translates vague feedback ("more realistic",
   // "more attractive") into concrete visual language the image model
   // can render.
   const refinedPrompt = await buildRefinedImagePrompt({
@@ -2268,7 +2293,6 @@ export async function registerRoutes(
         const result = await runImportPipeline(
           { files: fileInputs, pasteText, pasteTag, includeAssistant },
           { companyName: profile.companyName, industry: profile.industry },
-          genAI,
           (p: ImportProgress) => {
             if (p.stage === "filtering") {
               sendEvent({ type: "status", stage: "filtering", message: "Finding the brand-relevant parts…", kept: p.kept, total: p.total });
@@ -2664,13 +2688,18 @@ Return ONLY valid JSON as an array of objects with these fields:
 
 No markdown code fences. Return ONLY the JSON array.`;
 
-      const brainstormModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash", generationConfig: { temperature: 0.9, maxOutputTokens: 4000 } });
-      const brainstormResult = await brainstormModel.generateContent(prompt);
-
-      const content = brainstormResult.response.text() || "[]";
+      // NOTE: no json:true — this prompt returns a top-level JSON *array*, which
+      // response_format json_object cannot produce (it would wrap it in an object
+      // and the Array.isArray check below would silently yield zero ideas).
+      const content = await generateText({
+        label: "brainstorm",
+        prompt,
+        temperature: 0.9,
+        maxTokens: 4000,
+      }) || "[]";
       let ideas: any[];
       try {
-        ideas = parseGeminiJson(content);
+        ideas = parseModelJson(content);
         if (!Array.isArray(ideas)) ideas = [];
       } catch {
         ideas = [];
@@ -2699,7 +2728,7 @@ No markdown code fences. Return ONLY the JSON array.`;
 
       const today = new Date().toISOString().slice(0, 10);
       const customCtas = (profile.customCtas || []).slice(0, 3);
-      const geminiPrompt = `You are a campaign-setup assistant for a social-media marketing tool. Extract the user's natural-language description into a structured campaign config. Use the brand profile for sensible defaults when a field is not explicit.
+      const parsePrompt = `You are a campaign-setup assistant for a social-media marketing tool. Extract the user's natural-language description into a structured campaign config. Use the brand profile for sensible defaults when a field is not explicit.
 
 Today's date: ${today}
 
@@ -2732,16 +2761,17 @@ Rules:
 - Platforms: "LinkedIn"→linkedin, "Twitter"/"X"→x, "Instagram"/"IG"→instagram, "Facebook"/"FB"→facebook, "all platforms"/"everywhere"→all four.
 - Output JSON only.`;
 
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-        generationConfig: { temperature: 0.3, maxOutputTokens: 1500 },
-      });
-      const result = await model.generateContent(geminiPrompt);
-      const raw = result.response.text() || "{}";
+      const raw = await generateText({
+        label: "campaign-parse",
+        prompt: parsePrompt,
+        temperature: 0.3,
+        maxTokens: 1500,
+        json: true,
+      }) || "{}";
 
       let extracted: any;
       try {
-        extracted = parseGeminiJson(raw);
+        extracted = parseModelJson(raw);
       } catch (e) {
         console.error("Campaign parse — JSON parse error:", (e as Error).message, "raw:", raw.slice(0, 500));
         return res.status(422).json({
@@ -2860,12 +2890,14 @@ ${STATE_MARKER}
 {"description":"spring sale","platforms":["linkedin"],"tone":"friendly","postsCount":3,"callToAction":"Shop Now","startDate":null,"endDate":null,"defaultedFields":[]}`;
 
     try {
-      const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-        generationConfig: { temperature: 0.6, maxOutputTokens: 700 },
+      // Never `break` out of the loop below without calling stream.abort() —
+      // finalChatCompletion() would never settle and this SSE response would hang.
+      const streamResult = getOpenAI().chat.completions.stream({
+        model: TEXT_MODEL,
+        messages: [{ role: "user", content: combinedPrompt }],
+        temperature: 0.6,
+        max_tokens: 700,
       });
-
-      const streamResult = await model.generateContentStream(combinedPrompt);
 
       // Stream every char BEFORE the marker as a delta; buffer everything
       // after. The marker can be split across chunks, so we hold back the
@@ -2875,9 +2907,9 @@ ${STATE_MARKER}
       let emittedLen = 0;
       let markerHit = false;
 
-      for await (const chunk of streamResult.stream) {
+      for await (const chunk of streamResult) {
         let t = "";
-        try { t = chunk.text() || ""; } catch { t = ""; }
+        try { t = chunk.choices?.[0]?.delta?.content || ""; } catch { t = ""; }
         if (!t) continue;
         fullText += t;
         if (markerHit) continue;
@@ -2901,8 +2933,12 @@ ${STATE_MARKER}
 
       // Reconcile against the aggregated response in case a chunk was missed.
       try {
-        const finalText = (await streamResult.response).text();
+        const final = await streamResult.finalChatCompletion();
+        const finalText = final.choices?.[0]?.message?.content || "";
         if (finalText && finalText.length > fullText.length) fullText = finalText;
+        if (final.choices?.[0]?.finish_reason === "length") {
+          console.warn("[ai:campaign-chat] truncated at max_tokens=700 — inline ###STATE### JSON may be cut off; fallback extraction will run");
+        }
       } catch {}
 
       // Marker never streamed (model forgot it) — flush the rest of the reply.
@@ -2922,7 +2958,7 @@ ${STATE_MARKER}
       let validatedState: any = null;
       if (stateRaw) {
         try {
-          const norm = normalizeChatState(parseGeminiJson(stateRaw));
+          const norm = normalizeChatState(parseModelJson(stateRaw));
           const v = campaignChatResponseSchema.safeParse(norm);
           if (v.success) validatedState = v.data;
           else console.error("Campaign chat — inline state validation failed:", JSON.stringify(v.error.flatten()).slice(0, 400));

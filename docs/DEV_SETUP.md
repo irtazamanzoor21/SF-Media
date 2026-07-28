@@ -52,7 +52,9 @@ APP_BASE_URL=http://localhost:5000
 
 Optional vars unlock specific features (see [DEPLOYMENT.md](./DEPLOYMENT.md#environment-variables) for the full list). For most local work you can leave third-party keys empty and the corresponding features just won't work — most code paths degrade gracefully when a key is missing.
 
-> **AI features need `GEMINI_API_KEY`**. Without it, brand voice analysis, post generation, and image generation all fail. If you're working on AI features, get a key from https://aistudio.google.com/app/apikey.
+> **AI features need `OPENAI_API_KEY`**. Without it, brand voice analysis, post generation, and image generation all fail. If you're working on AI features, get a key from https://platform.openai.com/api-keys.
+>
+> **Image generation additionally requires a verified OpenAI organization.** `gpt-image-1` is gated behind OpenAI's ID verification (Settings → Organization). Until that's done, text features work but every image call returns 403. Verification is per-organization, not per-key.
 
 ---
 
@@ -180,7 +182,7 @@ Default to writing no comments. The schema file, type names, and Zod validators 
 - **Async**: `async`/`await` everywhere — no callbacks. Never wrap a Promise in `try`/`catch` just to log and re-throw.
 - **Transactions**: Drizzle exposes `db.transaction(async tx => { ... })`. Use it whenever you write to multiple tables in one logical operation.
 - **Logging**: `console.log` / `console.error` with a `[module]` prefix (e.g. `[email]`, `[stripe]`, `[companion]`) so logs are greppable.
-- **Side effects**: external API calls (Stripe, Gemini, Cloudinary, social platforms) live in dedicated service modules, never inlined in route handlers.
+- **Side effects**: external API calls (Stripe, OpenAI, Cloudinary, social platforms) live in dedicated service modules, never inlined in route handlers.
 
 ---
 
@@ -255,7 +257,7 @@ You added a field to the Zod schema or made an existing one stricter. Either the
 
 ### "AI features all returning 500"
 
-`GEMINI_API_KEY` missing or invalid. Check `.env` and Azure config. If valid, you may have hit Gemini's rate limit — back off and retry.
+`OPENAI_API_KEY` missing or invalid. Check `.env` and Azure config. If valid, you may have hit OpenAI's rate limit — back off and retry. If only *image* calls fail with a 403, the OpenAI organization is not ID-verified (required for `gpt-image-1`).
 
 ### "TypeScript errors I didn't introduce"
 

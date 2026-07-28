@@ -1,4 +1,4 @@
-import type { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateText } from "./openai-client";
 
 export interface Block {
   role: "user" | "assistant" | "unknown";
@@ -142,7 +142,6 @@ function buildChunks(blocks: Block[]): string[] {
 
 export async function chunkSummarize(
   blocks: Block[],
-  genAI: GoogleGenerativeAI,
   onProgress?: (p: ImportProgress) => void,
 ): Promise<string> {
   const totalChars = blocks.reduce((n, b) => n + b.content.length, 0);
@@ -154,17 +153,16 @@ export async function chunkSummarize(
   }
 
   const chunks = buildChunks(blocks);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-    generationConfig: { temperature: 0.3, maxOutputTokens: 2500 },
-  });
 
   const summaries: string[] = [];
   for (let i = 0; i < chunks.length; i++) {
     onProgress?.({ stage: "summarizing", current: i + 1, total: chunks.length });
-    const prompt = buildSummarizePrompt(chunks[i]);
-    const result = await model.generateContent(prompt);
-    const text = result.response.text() || "";
+    const text = await generateText({
+      label: "brand-import-chunk",
+      prompt: buildSummarizePrompt(chunks[i]),
+      temperature: 0.3,
+      maxTokens: 2500,
+    });
     if (text.trim()) summaries.push(`Chunk ${i + 1} of ${chunks.length}:\n${text.trim()}`);
   }
   return summaries.join("\n\n---\n\n");
@@ -187,7 +185,6 @@ export interface ImportResult {
 export async function runImportPipeline(
   input: ImportInput,
   ctx: { companyName?: string | null; industry?: string | null },
-  genAI: GoogleGenerativeAI,
   onProgress?: (p: ImportProgress) => void,
 ): Promise<ImportResult> {
   const allBlocks: Block[] = [];
@@ -223,7 +220,7 @@ export async function runImportPipeline(
   onProgress?.({ stage: "filtering", kept: filtered.length, total: blocksTotal });
 
   const blocksToUse = filtered.length > 0 ? filtered : allBlocks;
-  const condensedText = await chunkSummarize(blocksToUse, genAI, onProgress);
+  const condensedText = await chunkSummarize(blocksToUse, onProgress);
 
   const totalChars = blocksToUse.reduce((n, b) => n + b.content.length, 0);
 

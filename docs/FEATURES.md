@@ -107,7 +107,7 @@ For business framing of each feature, see [BUSINESS.md](./BUSINESS.md). For the 
    - Step 1: company name + industry (drives the AI's tone calibration).
    - Step 2: upload PDF/DOCX or website URL → `POST /api/onboarding/extract-content`.
    - Step 3: review extracted text.
-   - Step 4: AI analysis → `POST /api/onboarding/analyze-brand` runs Gemini on the text and returns brand summary, audience, pillars, do/don't rules, CTA preferences, hashtag themes.
+   - Step 4: AI analysis → `POST /api/onboarding/analyze-brand` runs OpenAI on the text and returns brand summary, audience, pillars, do/don't rules, CTA preferences, hashtag themes.
    - Step 5: review and tweak the auto-generated profile, then `POST /api/onboarding/save-brand-profile` persists it. Server also creates the org if one doesn't exist (slug from company name).
 5. **`/trial-welcome`** — countdown banner, feature highlights, CTA → `/dashboard`.
 6. **`/dashboard`** — campaign list (empty). Click **New Campaign**.

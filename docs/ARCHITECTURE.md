@@ -28,7 +28,7 @@ This document describes how SF Media is built end-to-end: the tech stack, the la
           │                    │
 ┌─────────▼─────────┐   ┌──────▼─────────────────────────────┐
 │  PostgreSQL       │   │  External services                 │
-│  Drizzle ORM      │   │  Gemini (text + image)             │
+│  Drizzle ORM      │   │  OpenAI (text + image)             │
 │  - users, orgs    │   │  Cloudinary CDN                    │
 │  - campaigns      │   │  Stripe (subscriptions + webhook)  │
 │  - posts          │   │  SendGrid (email)                  │
@@ -75,7 +75,7 @@ The whole app is a single Express process serving both the API and the built Rea
 | Auth | **express-session** + bcryptjs + Google OAuth (google-auth-library) |
 | Session store | **connect-pg-simple** (sessions in PostgreSQL) |
 | File handling | **Multer** (in-memory) for direct uploads, Companion for cloud imports |
-| AI | **@google/generative-ai** (Gemini 2.5 Flash for text + image) |
+| AI | **openai** (gpt-4.1-mini for text, gpt-image-1 for images) |
 | Payments | **stripe** SDK |
 | Email | **nodemailer** + SendGrid SMTP relay |
 | Image hosting | **cloudinary** SDK |
@@ -141,7 +141,7 @@ SF-Media/
 │   ├── auth.ts                  # Login/register/Google OAuth handlers
 │   ├── email.ts                 # Transactional templates + sendmail
 │   ├── stripe.ts                # Subscription helpers + webhook event handlers
-│   ├── image-service.ts         # Gemini image gen + Cloudinary upload
+│   ├── image-service.ts         # OpenAI image gen + Cloudinary upload
 │   ├── x.ts                     # X (Twitter) OAuth + post-now + scheduler
 │   ├── linkedin.ts              # LinkedIn OAuth + post-now
 │   ├── facebook.ts              # FB Graph API: pages, post, schedule, sync
@@ -306,7 +306,7 @@ The "one org per user" constraint simplifies a lot of authz checks but means a s
 
 ## AI integrations
 
-### Google Gemini (text)
+### OpenAI text (`gpt-4.1-mini`)
 
 Used by:
 - **Brand voice analysis** during onboarding — extracts brand summary, audience, pillars, do/don't rules, CTAs, hashtag themes from uploaded text/files
@@ -315,9 +315,22 @@ Used by:
 - **Campaign brainstorming** — suggests campaign ideas from the brand profile + market intelligence
 - **Image prompts** — generates the prompt that's then fed to the image model
 
-Driven by `GEMINI_API_KEY`. Wrapped in helper functions in `server/routes.ts` (around the `/api/onboarding/analyze-brand`, `/api/campaigns`, and `/api/brainstorm` routes).
+Driven by `OPENAI_API_KEY`. The client and a `generateText()` helper live in
+[server/openai-client.ts](../server/openai-client.ts); call sites are wrapped in helper
+functions in `server/routes.ts` (around the `/api/onboarding/analyze-brand`,
+`/api/campaigns`, and `/api/brainstorm` routes).
 
-### Google Gemini (image)
+The client is constructed **lazily**, on first use. `server/index.ts` imports `./routes`
+before it calls `dotenv.config()`, and `new OpenAI()` throws when the key is absent — so
+constructing at module scope would crash boot rather than failing the individual AI route.
+
+Prompts that expect a JSON **object** set `response_format: json_object`. The two prompts
+that return a top-level JSON **array** (campaign post generation, brainstorm) deliberately
+do not, because that mode cannot emit a bare array. `parseModelJson()` in `server/routes.ts`
+remains the tolerant fallback parser, including its truncation-salvage path for responses
+cut off at `max_tokens`.
+
+### OpenAI images (`gpt-image-1`)
 
 Used by:
 - **Per-post image generation** at platform-specific dimensions
@@ -325,6 +338,16 @@ Used by:
 - **AI image editing** — background removal, enhancement, style transfer, prompt-based edits
 
 Implemented in [server/image-service.ts](../server/image-service.ts). Output PNG → uploaded to Cloudinary → URL stored in `campaign_posts.imageUrl` / `media_files.url`.
+
+`gpt-image-1` renders only 1024×1024, 1536×1024, and 1024×1536. Posts are therefore
+generated at the nearest supported aspect and Cloudinary's `crop: "fill"` /
+`gravity: "auto"` transformation lands the exact platform dimensions — which discards
+roughly 20% of the height on the ~1.9:1 landscape platforms, so the generation prompt asks
+for a centred composition. Image *edits* derive their output size from the input's aspect
+ratio for the same reason; without that a 1200×627 image would come back square.
+
+Image quality defaults to `medium` and can be overridden with `OPENAI_IMAGE_QUALITY`
+(`low` | `medium` | `high`) to trade cost and latency against fidelity.
 
 ### AI learning loop
 
@@ -343,7 +366,7 @@ If `market_intelligence` data exists for the org, the trending keywords and comp
 1. Creates the campaign record (status `draft`).
 2. For each (platform × post slot) pair, writes:
    - `data: {"type":"status", "message":"Generating linkedin post 1..."}\n\n`
-3. Calls Gemini, parses the response, persists a `campaign_posts` row, then writes:
+3. Calls OpenAI, parses the response, persists a `campaign_posts` row, then writes:
    - `data: {"type":"post", "post":{...}}\n\n`
 4. Generates the image for each post, then writes:
    - `data: {"type":"image", "postId":N, "imageUrl":"https://..."}\n\n`

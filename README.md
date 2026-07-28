@@ -33,7 +33,7 @@ App runs at **http://localhost:5000**. Full setup with prerequisites and trouble
 
 ## Stack
 
-React 18 + TypeScript + Vite (frontend) · Express 5 + Node 22 (backend) · PostgreSQL 16 + Drizzle ORM · Google Gemini (AI) · Cloudinary (images) · Stripe (billing) · Azure App Service (hosting) · GitHub Actions (CI/CD).
+React 18 + TypeScript + Vite (frontend) · Express 5 + Node 22 (backend) · PostgreSQL 16 + Drizzle ORM · OpenAI (AI) · Cloudinary (images) · Stripe (billing) · Azure App Service (hosting) · GitHub Actions (CI/CD).
 
 ## Repository layout
 

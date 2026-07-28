@@ -53,7 +53,7 @@ Other middleware:
 |--------|------|------|---------|
 | PATCH | `/api/onboarding/step` | requireAuth | Save progress. Body: `{ step, data? }` |
 | POST | `/api/onboarding/extract-content` | requireAuth | Extract text from uploaded files (PDF/DOCX/TXT) and/or website URL. Body: multipart `files`, optional `url`. → `{ extractions: [{ source, text, unreachable? }] }` |
-| POST | `/api/onboarding/analyze-brand` | requireAuth | Run Gemini brand analysis on extracted text. Body: `{ companyName, industry, extractedText, url }`. → `{ brandVoice, tone, uniqueProps, keyMessages }` |
+| POST | `/api/onboarding/analyze-brand` | requireAuth | Run OpenAI brand analysis on extracted text. Body: `{ companyName, industry, extractedText, url }`. → `{ brandVoice, tone, uniqueProps, keyMessages }` |
 | POST | `/api/onboarding/save-brand-profile` | requireAuth | Persist profile + complete onboarding. Body: full brand profile shape. → `{ profile }` |
 
 ---
@@ -353,4 +353,4 @@ There is currently **no `/api/health` endpoint**. Azure App Service uses its def
 - Database tables: [DATA_MODEL.md](./DATA_MODEL.md)
 - Architecture and auth model: [ARCHITECTURE.md](./ARCHITECTURE.md)
 - User flows that exercise these endpoints: [FEATURES.md](./FEATURES.md)
-- Env vars required by some endpoints (Stripe, Gemini, Cloudinary, etc.): [DEPLOYMENT.md](./DEPLOYMENT.md)
+- Env vars required by some endpoints (Stripe, OpenAI, Cloudinary, etc.): [DEPLOYMENT.md](./DEPLOYMENT.md)

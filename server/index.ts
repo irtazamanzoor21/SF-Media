@@ -10,8 +10,11 @@ import { postToFacebook, fetchFacebookMetrics } from "./facebook";
 import { postToInstagram, fetchInstagramMetrics } from "./instagram";
 import { postToLinkedIn, fetchLinkedInMetrics } from "./linkedin";
 import { postToX, getValidXAccessToken, fetchXMetrics } from "./x";
+import { logAiConfig } from "./openai-client";
 import dotenv from "dotenv";
 dotenv.config();
+
+logAiConfig();
 
 // On managed hosts, default APP_BASE_URL to the service's public URL when not
 // explicitly configured. Ensures HTTPS cookies, OAuth redirects, and Companion use

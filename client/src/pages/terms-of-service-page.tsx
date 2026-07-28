@@ -66,7 +66,7 @@ export default function TermsOfServicePage() {
           <section>
             <h2 className="text-xl font-semibold mb-3">6. Third-Party Integrations</h2>
             <p className="text-muted-foreground leading-relaxed">
-              SF Media integrates with third-party services including Google (for authentication and Google Drive file import) and Google Gemini (for content generation and image generation). Your use of these third-party services through SF Media is subject to those services' respective terms and privacy policies. SF Media is not responsible for the practices of third-party services.
+              SF Media integrates with third-party services including Google (for authentication and Google Drive file import) and OpenAI (for content generation and image generation). Your use of these third-party services through SF Media is subject to those services' respective terms and privacy policies. SF Media is not responsible for the practices of third-party services.
             </p>
           </section>
 

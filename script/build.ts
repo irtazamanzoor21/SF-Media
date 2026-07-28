@@ -6,7 +6,6 @@ import { rm, readFile } from "fs/promises";
 // which helps cold start times
 const allowlist = [
   "@google-cloud/storage",
-  "@google/generative-ai",
   "@sendgrid/mail",
   "axios",
   "bcryptjs",

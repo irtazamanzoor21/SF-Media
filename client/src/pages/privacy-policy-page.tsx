@@ -96,7 +96,7 @@ export default function PrivacyPolicyPage() {
             </p>
             <ul className="list-disc pl-6 mt-2 space-y-1 text-muted-foreground">
               <li>Cloud hosting and storage providers for securely hosting the application and your data</li>
-              <li>AI service providers (Google Gemini) for generating content and images based on your requests</li>
+              <li>AI service providers (OpenAI) for generating content and images based on your requests</li>
               <li>Image storage providers (Cloudinary) for storing AI-generated images</li>
             </ul>
             <p className="text-muted-foreground leading-relaxed mt-2">

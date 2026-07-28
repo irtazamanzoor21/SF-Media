@@ -56,11 +56,12 @@ All env vars live in **Azure App Service → Configuration → Application Setti
 | `PORT` | Defaults to 5000 |
 | `COMPANION_HOST` | Override for Companion's externally-visible host; usually not needed if `APP_BASE_URL` is set |
 
-### AI (Gemini)
+### AI (OpenAI)
 
 | Variable | Purpose |
 |----------|---------|
-| `GEMINI_API_KEY` | Required for AI brand voice analysis, campaign generation, image generation, brainstorm. Without this, all AI features fail. |
+| `OPENAI_API_KEY` | Required for AI brand voice analysis, campaign generation, image generation, brainstorm. Without this, all AI features fail. |
+| `OPENAI_IMAGE_QUALITY` | Optional. `low` \| `medium` \| `high`, default `medium`. Trades image cost and latency against fidelity. |
 
 ### Authentication (Google OAuth)
 
